@@ -1,7 +1,7 @@
 // src/core/CommandBuilder.test.ts
 import { describe, it, expect } from "vitest";
 import { CommandBuilder } from "./ExtendedCommand";
-import { CommandType, CommandChannel } from "./enums";
+import { CommandType, CommandChannel } from "../shared/enums";
 
 describe("CommandBuilder", () => {
   it("construit une commande slash valide avec les valeurs par défaut", () => {
