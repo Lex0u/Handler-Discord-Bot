@@ -1,0 +1,36 @@
+{
+  "name": "handler-discord-bot",
+  "version": "0.1.0",
+  "description": "Handler Discord réutilisable : plugins, adapters DB/logger, commandes et events typés avec builders.",
+  "homepage": "https://github.com/Lex0u/Handler-Discord-Bot#readme",
+  "bugs": {
+    "url": "https://github.com/Lex0u/Handler-Discord-Bot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lex0u/Handler-Discord-Bot.git"
+  },
+  "license": "MIT",
+  "author": "Lex0u",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "tsx": "^4.19.2",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

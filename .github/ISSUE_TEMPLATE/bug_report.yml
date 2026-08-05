@@ -1,0 +1,29 @@
+# .github/ISSUE_TEMPLATE/bug_report.yml
+name: "🐛 Bug report"
+description: Signaler un bug sur le handler
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description du bug
+      description: Que se passe-t-il ? Que devrait-il se passer ?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Étapes de reproduction
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version du handler / Node.js
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      render: shell

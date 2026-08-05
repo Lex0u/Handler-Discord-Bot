@@ -1,0 +1,21 @@
+# .github/ISSUE_TEMPLATE/feature_request.yml
+name: "✨ Feature request"
+description: Proposer une amélioration ou une nouvelle fonctionnalité
+labels: ["type: enhancement", "status: needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Quel problème ça résout ?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
