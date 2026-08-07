@@ -24,7 +24,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lex0u/logger": "^2.2.4",
+    "@lex0u/logger": "^2.3.0",
     "discord.js": "^14.16.3",
     "dotenv": "^17.4.2"
   },
