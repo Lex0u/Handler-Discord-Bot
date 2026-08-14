@@ -37,7 +37,7 @@ export default class GuildCreateEvent extends Event {
             channelsCount: channels.size,
         });
 
-        const addbotChannelId = process.env.DISCORD_CHANNEL_ADDBOT;
+        const addbotChannelId = process.env.DISCORD_CHANNEL_LOG;
         if (!addbotChannelId) return;
 
         const embed = this.buildJoinEmbed(guild, owner.user.username, owner.id, humansCount, botsCount, roles.size, channels.size);
