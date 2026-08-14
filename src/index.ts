@@ -8,6 +8,11 @@ import { loadEvents } from "./core/event/EventHandler";
 import { autoStatus } from "./plugins/autoStatus";
 import { processErrorLogger } from "./plugins/processErrorLogger";
 import { createLex0uLogger } from "./adapters/lex0uLogger"; // wrapper autour de @lex0u/logger
+import { createMongooseAdapter } from "./adapters/mongoose";
+import { latencyMonitor } from "./plugins/latencyMonitor";
+import { apiResilience } from "./plugins/apiResilience";
+import { gracefulShutdown } from "./plugins/gracefulShutdown";
+import { uptimeTracker } from "./plugins/uptimeTracker";
 
 const logger = createLex0uLogger({
     console: { enabled: true },
@@ -26,13 +31,21 @@ async function main() {
             GatewayIntentBits.MessageContent,
         ],
         logger,
-        // database: createMongooseAdapter(process.env.MONGO_URI!),
+        database: createMongooseAdapter(process.env.MONGO_URI!),
         plugins: [
             processErrorLogger(),
             autoStatus({
                 interval: 15 * 1000, // 15 secondes
-                statuses: [{ name: "Prêt à gérer les pubs" }],
+                description: "Bot de gestion des publicités, sécurité et modération -- {members} utilisateurs",
+                statuses: [
+                    { name: "Prêt à gérer les pubs", presence: "dnd" },
+                    { name: `Présent pour {members} membres !`, presence: "online" },
+                ],
             }),
+            latencyMonitor({ threshold: 500 }),
+            apiResilience(),
+            gracefulShutdown(),
+            uptimeTracker(),
         ],
     });
 

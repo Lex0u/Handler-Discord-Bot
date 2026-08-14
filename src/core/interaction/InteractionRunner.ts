@@ -11,27 +11,22 @@ export type CooldownType = "command" | "button" | "selectMenu" | "modal";
  * Clé de stockage: `${type}:${key}:${userId}`.
  */
 export class CooldownManager {
-  private readonly store = new Collection<string, number>();
+    private readonly store = new Collection<string, number>();
 
-  check(
-    type: CooldownType,
-    key: string,
-    userId: string,
-    seconds: number,
-  ): { onCooldown: boolean; timeLeft: number } {
-    if (seconds <= 0) return { onCooldown: false, timeLeft: 0 };
+    check(type: CooldownType, key: string, userId: string, seconds: number): { onCooldown: boolean; timeLeft: number } {
+        if (seconds <= 0) return { onCooldown: false, timeLeft: 0 };
 
-    const storeKey = `${type}:${key}:${userId}`;
-    const expiresAt = this.store.get(storeKey);
-    const now = Date.now();
+        const storeKey = `${type}:${key}:${userId}`;
+        const expiresAt = this.store.get(storeKey);
+        const now = Date.now();
 
-    if (expiresAt && expiresAt > now) {
-      return { onCooldown: true, timeLeft: (expiresAt - now) / 1000 };
+        if (expiresAt && expiresAt > now) {
+            return { onCooldown: true, timeLeft: (expiresAt - now) / 1000 };
+        }
+
+        this.store.set(storeKey, now + seconds * 1000);
+        return { onCooldown: false, timeLeft: 0 };
     }
-
-    this.store.set(storeKey, now + seconds * 1000);
-    return { onCooldown: false, timeLeft: 0 };
-  }
 }
 
 /**
@@ -39,70 +34,55 @@ export class CooldownManager {
  * Les commandes n'ont plus besoin de try/catch manuel ni de vérifier les permissions elles-mêmes.
  */
 export async function runCommand(
-  client: ExtendedClient,
-  command: Command,
-  ctx: CommandContext<CommandInteraction | Message>,
-  cooldowns: CooldownManager,
+    client: ExtendedClient,
+    command: Command,
+    ctx: CommandContext<CommandInteraction | Message>,
+    cooldowns: CooldownManager,
 ): Promise<void> {
-  if (!command.enabled) {
-    return void command.sendError(
-      ctx,
-      "Cette commande est actuellement désactivée.",
-    );
-  }
-
-  if (
-    client.database &&
-    !command.canUseWithoutDatabase &&
-    !client.database.isConnected()
-  ) {
-    return void command.sendError(
-      ctx,
-      "La base de données est actuellement indisponible. Réessaie plus tard.",
-    );
-  }
-
-  const userId = ctx.user?.id;
-  if (userId) {
-    const { onCooldown, timeLeft } = cooldowns.check(
-      "command",
-      command.key,
-      userId,
-      command.cooldown,
-    );
-    if (onCooldown) {
-      return void command.sendError(
-        ctx,
-        `Cette commande est en cooldown. Patiente **${Math.ceil(timeLeft)}s**.`,
-      );
+    if (!command.enabled) {
+        return void command.sendError(ctx, "Cette commande est actuellement désactivée.");
     }
-  }
 
-  const clientPerms = command.hasClientPermissions(ctx);
-  if (!clientPerms.canExecute) {
-    return void command.sendError(
-      ctx,
-      `Il me manque les permissions : **${clientPerms.missing.join(", ")}**`,
-    );
-  }
+    if (client.isMaintenance) {
+        return void command.sendError(
+            ctx,
+            `Le bot est actuellement en maintenance${client.maintenanceReason ? ` : ${client.maintenanceReason}` : ""}. Réessaie plus tard.`,
+        );
+    }
 
-  const userPerms = await command.hasUserPermissions(ctx);
-  if (!userPerms.canExecute) {
-    return void command.sendError(
-      ctx,
-      `Tu n'as pas les permissions : **${userPerms.missing.join(", ")}**`,
-    );
-  }
+    if (!client.isLatencyHealthy()) {
+        return void command.sendError(
+            ctx,
+            `Discord répond très lentement en ce moment (${client.getLatency()}ms) — je préfère ne pas traiter ta demande maintenant plutôt que de te faire attendre. Réessaie dans quelques minutes.`,
+        );
+    }
 
-  try {
-    await command.execute(ctx);
-  } catch (error) {
-    client.log(
-      LogLevel.Error,
-      `Erreur dans la commande "${command.name}": ${error}`,
-      LogTag.Commands,
-      { error },
-    );
-    await command.sendError(ctx).catch(() => undefined);
-  }
+    if (client.database && !command.canUseWithoutDatabase && !client.database.isConnected()) {
+        return void command.sendError(ctx, "La base de données est actuellement indisponible. Réessaie plus tard.");
+    }
+
+    const userId = ctx.user?.id;
+    if (userId) {
+        const { onCooldown, timeLeft } = cooldowns.check("command", command.key, userId, command.cooldown);
+        if (onCooldown) {
+            return void command.sendError(ctx, `Cette commande est en cooldown. Patiente **${Math.ceil(timeLeft)}s**.`);
+        }
+    }
+
+    const clientPerms = command.hasClientPermissions(ctx);
+    if (!clientPerms.canExecute) {
+        return void command.sendError(ctx, `Il me manque les permissions : **${clientPerms.missing.join(", ")}**`);
+    }
+
+    const userPerms = await command.hasUserPermissions(ctx);
+    if (!userPerms.canExecute) {
+        return void command.sendError(ctx, `Tu n'as pas les permissions : **${userPerms.missing.join(", ")}**`);
+    }
+
+    try {
+        await command.execute(ctx);
+    } catch (error) {
+        client.log(LogLevel.Error, `Erreur dans la commande "${command.name}": ${error}`, LogTag.Commands, { error });
+        await command.sendError(ctx).catch(() => undefined);
+    }
 }
